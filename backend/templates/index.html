@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusAI — Knowledge Assistant</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --sidebar: #101827;
+            --primary: #635bff;
+            --text: #172033;
+            --muted: #778196;
+            --border: #e7eaf1;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, system-ui, -apple-system, sans-serif;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background: var(--sidebar);
+            color: white;
+            padding: 26px 18px;
+        }
+
+        .brand {
+            font-size: 23px;
+            font-weight: 750;
+            letter-spacing: -0.7px;
+            margin-bottom: 38px;
+        }
+
+        .brand span { color: #a5a0ff; }
+
+        .nav-label {
+            color: #8994a8;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 25px 10px 10px;
+        }
+
+        .nav-item-link {
+            display: block;
+            padding: 11px 12px;
+            margin-bottom: 5px;
+            color: #c4cddd;
+            border-radius: 9px;
+            text-decoration: none;
+        }
+
+        .nav-item-link.active,
+        .nav-item-link:hover {
+            background: #272f43;
+            color: white;
+        }
+
+        .sidebar-bottom {
+            margin-top: 40px;
+            padding: 15px 12px;
+            border-top: 1px solid #30384a;
+            color: #c4cddd;
+            font-size: 13px;
+        }
+
+        .main {
+            min-width: 0;
+            flex: 1;
+            padding: 30px clamp(18px, 4vw, 54px);
+        }
+
+        .workspace {
+            max-width: 1050px;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .eyebrow {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        .page-title {
+            font-size: clamp(25px, 3vw, 34px);
+            font-weight: 750;
+            letter-spacing: -1.1px;
+            margin: 7px 0;
+        }
+
+        .muted { color: var(--muted); }
+
+        .panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 22px;
+            box-shadow: 0 5px 24px rgba(25, 35, 65, 0.035);
+        }
+
+        .panel-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .upload-zone {
+            margin-top: 20px;
+            border: 1.5px dashed #cbd1e2;
+            background: #fafbff;
+            border-radius: 12px;
+            padding: 30px 18px;
+            text-align: center;
+        }
+
+        .upload-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: #5148e5;
+            border-color: #5148e5;
+        }
+
+        .status-pill {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 9px;
+            border-radius: 20px;
+            background: #eefaf3;
+            color: #16804a;
+        }
+
+        .document-item {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px;
+            margin-top: 9px;
+            overflow-wrap: anywhere;
+        }
+
+        .document-meta {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .message {
+            font-size: 13px;
+            margin-top: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .chat-box {
+            min-height: 150px;
+            padding: 20px 0;
+        }
+
+        .assistant-message {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .assistant-icon {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            background: #eeedff;
+            border-radius: 12px;
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .answer-placeholder {
+            background: #f8f9fc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+                .question-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .question-form input {
+            min-width: 0;
+            flex: 1;
+            border-color: #dfe3ed;
+            padding: 13px 15px;
+        }
+
+        .source-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px;
+            margin-top: 10px;
+            overflow-wrap: anywhere;
+        }
+
+        .footer-note {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 14px;
+            color: var(--muted);
+        }
+
+        [hidden] { display: none !important; }
+
+        @media (max-width: 760px) {
+            .sidebar {
+                width: 68px;
+                padding: 22px 8px;
+            }
+
+            .brand {
+                text-align: center;
+                font-size: 17px;
+                margin-bottom: 32px;
+            }
+
+            .brand-name,
+            .nav-label,
+            .nav-text,
+            .sidebar-bottom {
+                display: none;
+            }
+
+            .nav-item-link {
+                text-align: center;
+                padding: 12px 5px;
+                font-size: 18px;
+            }
+
+            .main { padding: 22px 13px; }
+            .panel { padding: 18px; }
+            .topbar { align-items: flex-start; }
+            .question-form { flex-direction: column; }
+        }
+
+
+        /* NexusAI minimal dark workspace */
+        :root { color-scheme: dark; --bg:#0b0d14; --sidebar:#10121c; --surface:#141725; --surface2:#191d2d; --primary:#8b5cf6; --text:#f1f2f7; --muted:#9aa1b5; --border:#292d40; }
+        body { background:var(--bg)!important; color:var(--text)!important; font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif; }
+        .app { min-height:100vh; background:var(--bg); }
+        .sidebar { background:var(--sidebar)!important; border-right:1px solid var(--border); }
+        .brand { color:#fff!important; }
+        .nav-label,.muted,.footer-note,.sidebar-bottom { color:var(--muted)!important; }
+        .nav-item-link { color:#c9ccda!important; border-radius:8px; margin:3px 0; }
+        .nav-item-link:hover,.nav-item-link.active { color:#fff!important; background:#28213f!important; }
+        .main { background:var(--bg); }
+        .page-title { color:#fff!important; font-size:clamp(25px,3vw,34px); letter-spacing:-.7px; }
+        .eyebrow { color:#a78bfa!important; letter-spacing:1.5px; }
+        .panel,.card { background:var(--surface)!important; color:var(--text)!important; border:1px solid var(--border)!important; border-radius:12px!important; box-shadow:none!important; }
+        .card-body { color:var(--text)!important; }
+        .panel-title,.card-title,.form-label,.fw-semibold,.fw-bold,h1,h2,h3,h4,h5 { color:var(--text); }
+        .form-control,.form-select { background:#101321!important; color:#f1f2f7!important; border:1px solid #34394f!important; }
+        .form-control::placeholder { color:#858ba0!important; }
+        .form-control:focus,.form-select:focus { border-color:var(--primary)!important; box-shadow:0 0 0 .2rem #8b5cf633!important; }
+        .btn-primary { background:var(--primary)!important; border-color:var(--primary)!important; }
+        .btn-outline-secondary,.btn-outline-primary,.btn-outline-light { color:#d9dced!important; border-color:#454b63!important; }
+        .upload-zone { background:#101321!important; border:1px dashed #45405f!important; }
+        .document-item,.answer-placeholder,.source-card { background:var(--surface2)!important; color:var(--text)!important; border:1px solid var(--border)!important; }
+        hr { border-color:var(--border)!important; }
+        .status-pill { background:#202b35!important; color:#86efac!important; }
+        [data-screen][hidden] { display:none!important; }
+        .hero-panel { padding:34px; border:1px solid #34265b; border-radius:14px; background:linear-gradient(115deg,#17152a,#111523 65%,#21153a); margin:10px 0 20px; }
+        .hero-panel h2 { font-size:clamp(25px,3.5vw,38px); font-weight:750; max-width:680px; margin:12px 0; }
+        .hero-panel p { color:#b7bdd0; max-width:650px; line-height:1.7; }
+        .dashboard-shortcuts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+        .shortcut-card { text-align:left; display:flex; flex-direction:column; gap:9px; padding:20px; border-radius:12px; background:var(--surface); border:1px solid var(--border); color:var(--text); min-height:145px; }
+        .shortcut-card:hover { border-color:#7656c9; transform:translateY(-1px); }
+        .shortcut-card span:last-child { color:var(--muted); font-size:13px; }
+        .shortcut-icon { color:#b69aff; font-size:23px; }
+        .dashboard-note { color:var(--muted); font-size:13px; margin-top:22px; }
+        .text-link { border:0; padding:0; background:none; color:#b69aff; text-decoration:underline; }
+        @media(max-width:760px){ .dashboard-shortcuts{grid-template-columns:1fr;} .hero-panel{padding:22px;} }
+    </style>
+</head>
+
+<body>
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="brand">N<span>✦</span><span class="brand-name">exusAI</span></div>
+
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item-link active" href="#dashboard" data-screen-target="dashboard">
+            ◫ <span class="nav-text">Dashboard</span>
+        </a>
+        <a class="nav-item-link" href="#documents" data-screen-target="documents">
+            ▤ <span class="nav-text">Documents</span>
+        </a>
+        <a class="nav-item-link" href="#assistant" data-screen-target="assistant">
+            ✧ <span class="nav-text">AI Assistant</span>
+        </a>
+        <a class="nav-item-link" href="#members" data-screen-target="members">
+    ♙ <span class="nav-text">Members</span>
+</a>
+        <div class="nav-label">Account</div>
+        <a class="nav-item-link" href="#account" data-screen-target="account">
+            ⚙ <span class="nav-text">Account</span>
+        </a>
+
+        <div class="sidebar-bottom">
+            <div class="fw-semibold mb-1">NexusAI Workspace</div>
+            <div>Private knowledge base</div>
+        </div>
+    </aside>
+
+    <main class="main" id="dashboard">
+        <div class="workspace">
+
+            <header class="topbar">
+                <div>
+                    <div class="eyebrow">Knowledge workspace</div>
+                    <h1 class="page-title">Your knowledge, connected.</h1>
+                    <p class="muted mb-0">
+                        Upload documents and ask questions about their contents.
+                    </p>
+                </div>
+
+                <div class="text-end">
+                    <span id="authStatus" class="status-pill">
+                        ● Login required
+                    </span>
+                    <div class="mt-2">
+                        <button
+                            id="logoutButton"
+                            class="btn btn-sm btn-outline-secondary"
+                            type="button"
+                            hidden
+                        >
+                            Log out
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard screen -->
+            <section id="dashboardScreen" data-screen="dashboard" class="dashboard-screen">
+                <div class="hero-panel">
+                    <div class="eyebrow">NEXUSAI WORKSPACE</div>
+                    <h2>Knowledge, research and workflows. Together.</h2>
+                    <p>Ask questions, explore your organization's documents and get useful answers from one workspace.</p>
+                    <button type="button" class="btn btn-primary" data-go-screen="assistant">Open AI Assistant</button>
+                    <button type="button" class="btn btn-outline-light ms-2" data-go-screen="documents">Manage documents</button>
+                </div>
+                <div class="dashboard-shortcuts">
+                    <button type="button" class="shortcut-card" data-go-screen="assistant"><span class="shortcut-icon">✧</span><strong>AI Assistant</strong><span>Ask questions across your knowledge base.</span></button>
+                    <button type="button" class="shortcut-card" data-go-screen="documents"><span class="shortcut-icon">▤</span><strong>Knowledge Base</strong><span>Upload and manage organization documents.</span></button>
+                    <button type="button" class="shortcut-card" data-go-screen="members"><span class="shortcut-icon">♙</span><strong>Members</strong><span>Manage who can access your workspace.</span></button>
+                </div>
+                <div class="dashboard-note">Sign in through <button type="button" class="text-link" data-go-screen="account">Account</button> to access your organization workspace.</div>
+            </section>
+
+            <!-- Account login -->
+
+<!-- Account -->
+<section class="panel" id="account" data-screen="account" hidden>
+    <h2 class="panel-title">NexusAI Account</h2>
+    <p class="muted small">
+        Register a new workspace or sign in to your existing account.
+    </p>
+
+    <div id="authForms">
+        <!-- Registration -->
+        <form id="registerForm" class="row g-3 mb-4">
+            <h3 class="h6 fw-bold">Create an account</h3>
+
+            <div class="col-md-6">
+                <label class="form-label" for="registerUsername">Username</label>
+                <input id="registerUsername" name="username"
+                       class="form-control" autocomplete="username" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label" for="registerEmail">Email</label>
+                <input id="registerEmail" name="email" type="email"
+                       class="form-control" autocomplete="email" required>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label" for="registerOrganization">Organization name</label>
+                <input id="registerOrganization" name="organization_name"
+                       class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label" for="registerPassword">Password</label>
+                <input id="registerPassword" name="password" type="password"
+                       class="form-control" autocomplete="new-password" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label" for="registerPasswordConfirm">Confirm password</label>
+                <input id="registerPasswordConfirm" name="password_confirm"
+                       type="password" class="form-control"
+                                           autocomplete="new-password" required>
+            </div>
+
+            <div class="col-12">
+                <button id="registerButton" class="btn btn-primary" type="submit">
+                    Create account
+                </button>
+            </div>
+            <div id="registerMessage" class="message" role="status"></div>
+        </form>
+
+        <hr>
+
+        <!-- Login -->
+        <form id="loginForm" class="row g-3">
+            <h3 class="h6 fw-bold">Sign in</h3>
+
+            <div class="col-md-5">
+                <label class="form-label" for="usernameInput">Username</label>
+                <input id="usernameInput" name="username"
+                       class="form-control" autocomplete="username" required>
+            </div>
+
+            <div class="col-md-5">
+                <label class="form-label" for="passwordInput">Password</label>
+                <input id="passwordInput" name="password" type="password"
+                       class="form-control" autocomplete="current-password" required>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button id="loginButton" class="btn btn-primary w-100" type="submit">
+                    Sign in
+                </button>
+            </div>
+
+            <div id="loginMessage" class="message" role="status"></div>
+        </form>
+    </div>
+
+    <!-- Organization workspace controls -->
+    <div id="workspaceControls" hidden>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-7">
+                <label for="organizationSelect" class="form-label">
+                    Current organization
+                </label>
+                <select id="organizationSelect" class="form-select"></select>
+            </div>
+
+            <div class="col-md-5">
+                <button id="createOrganizationButton"
+                        class="btn btn-outline-primary w-100" type="button">
+                    + Create organization
+                </button>
+            </div>
+        </div>
+
+        <div id="organizationMessage" class="message" role="status"></div>
+    </div>
+</section>
+<!-- Organization Members -->
+<section class="panel" id="members" data-screen="members" hidden>
+
+    <h2 class="panel-title">Organization Members</h2>
+
+    <p class="muted small">
+        Manage people who have access to this organization.
+    </p>
+
+    <!-- Add Member -->
+    <div class="card mb-4">
+        <div class="card-body">
+
+            <h5 class="card-title">Add a member</h5>
+
+            <form id="addMemberForm" class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Email address</label>
+                    <input
+                        type="email"
+                        id="memberEmailInput"
+                        class="form-control"
+                        placeholder="user@example.com"
+                        required
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Role</label>
+                    <select id="memberRoleSelect" class="form-select">
+                        <option value="MEMBER">Member</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <button
+                        type="submit"
+                        id="addMemberButton"
+                        class="btn btn-primary w-100"
+                    >
+                        Add Member
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="memberMessage" class="message"></div>
+
+    <!-- Member list -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Team members</h5>
+
+        <button
+            type="button"
+            id="refreshMembersButton"
+            class="btn btn-sm btn-outline-secondary"
+        >
+            Refresh
+        </button>
+    </div>
+
+    <div id="memberList">
+        <p class="muted small">Sign in to view members.</p>
+    </div>
+
+</section>
+            <!-- Document upload and library -->
+            <section class="panel" id="documents" data-screen="documents" hidden>
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                        <h2 class="panel-title">Your documents</h2>
+                        <p class="muted small mb-0">
+                            Upload Documents to your organization's knowledge base.
+                        </p>
+                    </div>
+                    <span class="fs-4">▤</span>
+                </div>
+
+                <div class="upload-zone">
+                    <div class="upload-icon">⇧</div>
+                    <h3 class="h6 fw-bold">Upload a document</h3>
+                    <p class="muted small mb-3">
+Choose PDF, DOCX, PPTX, XLSX, CSV, TXT, MD, or HTML files. Maximum 10 MB.                    </p>
+
+                    <button
+                        class="btn btn-primary px-4"
+                        id="uploadButton"
+                        type="button"
+                    >
+Choose File                    </button>
+
+                    <input
+                        id="fileInput"
+                        type="file"
+                        accept=".pdf,.docx,.pptx,.xlsx,.csv,.txt,.md,.html,.htm"
+                        hidden
+                    >
+
+                    <div id="fileMessage" class="message muted" role="status">
+                        Sign in to upload a document.
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <div class="fw-semibold small">Document library</div>
+                    <div id="documentList" aria-live="polite">
+                        <div class="text-center muted small py-4">
+                            Sign in to load your documents.
+                        </div>
+                    </div>
+
+                    <button
+                        id="refreshButton"
+                        class="btn btn-sm btn-outline-secondary mt-3"
+                        type="button"
+                    >
+                        Refresh documents
+                    </button>
+                </div>
+            </section>
+
+            <!-- AI question interface -->
+            <section class="panel" id="assistant" data-screen="assistant" hidden>
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                        <h2 class="panel-title">Ask NexusAI</h2>
+                        <p class="muted small mb-0">
+                            Ask questions about your organization's documents.
+                        </p>
+                    </div>
+                    <span class="fs-4">✧</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+    <div class="fw-semibold">Conversation history</div>
+
+    <button
+        type="button"
+        class="btn btn-sm btn-outline-primary"
+        id="newConversationButton"
+    >
+        + New Chat
+    </button>
+</div>
+
+<div
+    id="conversationList"
+    class="mb-3"
+    aria-live="polite"
+>
+    <div class="muted small">
+        Sign in to load your conversations.
+    </div>
+</div>
+                <div class="chat-box">
+
+                    <div class="assistant-message">
+                        <div class="assistant-icon">N</div>
+
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold mb-2">
+                                NexusAI Assistant
+                            </div>
+
+                            <div
+                                class="answer-placeholder"
+                                id="answerArea"
+                                aria-live="polite"
+                            >
+                                Upload a document, then ask a question about its contents.
+                            </div>
+
+                            <div id="sourceArea" class="message"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <form class="question-form" id="questionForm">
+                    <input
+                        class="form-control"
+                        id="questionInput"
+                        type="text"
+                        maxlength="1000"
+                        placeholder="Ask about your uploaded documents..."
+                        aria-label="Your question"
+                        required
+                    >
+
+                    <button
+                        class="btn btn-primary px-4"
+                        id="askButton"
+                        type="submit"
+                    >
+                        Ask ↗
+                    </button>
+                </form>
+
+                <div id="askMessage" class="message" role="status"></div>
+
+                <div class="footer-note">
+                    Answers are generated using your organization's document knowledge base.
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   1. API CONFIGURATION AND STATE
+========================================================= */
+
+const API_BASE = "/api";
+const TOKEN_URL = `${API_BASE}/auth/token/`;
+const REGISTER_URL = `${API_BASE}/auth/register/`;
+const ORGANIZATIONS_URL = `${API_BASE}/organizations/`;
+
+let accessToken = sessionStorage.getItem("nexusai_access_token") || "";
+let refreshToken = sessionStorage.getItem("nexusai_refresh_token") || "";
+
+let ORGANIZATION_ID = null;
+let DOCUMENTS_URL = "";
+let CONVERSATIONS_URL = "";
+let MEMBERS_URL = "";
+let currentUsername = "";
+let currentConversationId = null;
+
+/* =========================================================
+   2. DOM ELEMENTS
+========================================================= */
+
+// Authentication
+const authForms = document.getElementById("authForms");
+const registerForm = document.getElementById("registerForm");
+const registerButton = document.getElementById("registerButton");
+const registerMessage = document.getElementById("registerMessage");
+
+const loginForm = document.getElementById("loginForm");
+const usernameInput = document.getElementById("usernameInput");
+const passwordInput = document.getElementById("passwordInput");
+const loginButton = document.getElementById("loginButton");
+const loginMessage = document.getElementById("loginMessage");
+
+const authStatus = document.getElementById("authStatus");
+const logoutButton = document.getElementById("logoutButton");
+
+// Organizations
+const workspaceControls = document.getElementById("workspaceControls");
+const organizationSelect = document.getElementById("organizationSelect");
+const createOrganizationButton =
+    document.getElementById("createOrganizationButton");
+const organizationMessage =
+    document.getElementById("organizationMessage");
+
+// Documents
+const uploadButton = document.getElementById("uploadButton");
+const fileInput = document.getElementById("fileInput");
+const fileMessage = document.getElementById("fileMessage");
+const documentList = document.getElementById("documentList");
+const refreshButton = document.getElementById("refreshButton");
+
+// Conversations and chat
+const conversationList = document.getElementById("conversationList");
+const newConversationButton =
+    document.getElementById("newConversationButton");
+
+const questionForm = document.getElementById("questionForm");
+const questionInput = document.getElementById("questionInput");
+const askButton = document.getElementById("askButton");
+const askMessage = document.getElementById("askMessage");
+const answerArea = document.getElementById("answerArea");
+const sourceArea = document.getElementById("sourceArea");
+
+
+/* =========================================================
+   3. COMMON HELPERS
+========================================================= */
+
+function showMessage(element, message, success = false) {
+    element.textContent = message;
+    element.className =
+        "message " + (success ? "text-success" : "text-danger");
+}
+
+async function readResponse(response) {
+    const text = await response.text();
+
+    if (!text) return {};
+
+    try {
+        return JSON.parse(text);
+    } catch {
+        return { detail: text };
+    }
+}
+
+function getErrorMessage(data, fallback) {
+    if (data.detail) {
+        return typeof data.detail === "string"
+            ? data.detail
+            : JSON.stringify(data.detail);
+    }
+
+    const firstKey = Object.keys(data)[0];
+
+    if (firstKey) {
+        const value = data[firstKey];
+        return `${firstKey}: ${
+            Array.isArray(value) ? value.join(" ") : String(value)
+        }`;
+    }
+
+    return fallback;
+}
+
+function setOrganizationEndpoints(id) {
+    ORGANIZATION_ID = Number(id);
+
+    DOCUMENTS_URL =
+        `${API_BASE}/organizations/${ORGANIZATION_ID}/documents/`;
+
+    CONVERSATIONS_URL =
+        `${API_BASE}/organizations/${ORGANIZATION_ID}/conversations/`;
+    MEMBERS_URL =
+    `${API_BASE}/organizations/${ORGANIZATION_ID}/members/`;
+}
+
+function resetChat() {
+    currentConversationId = null;
+    answerArea.textContent =
+        "Select a conversation or start a new chat.";
+    sourceArea.replaceChildren();
+    conversationList.replaceChildren();
+
+    const message = document.createElement("div");
+    message.className = "muted small";
+    message.textContent = "Loading conversations...";
+    conversationList.appendChild(message);
+}
+
+
+/* =========================================================
+   4. AUTHENTICATION STATE
+========================================================= */
+
+function setSignedIn(username) {
+    authStatus.textContent = `● Signed in${username ? ` as ${username}` : ""}`;
+    currentUsername = username || "";
+    logoutButton.hidden = false;
+
+    authForms.hidden = true;
+    workspaceControls.hidden = false;
+
+    questionInput.disabled = false;
+    askButton.disabled = false;
+
+    fileMessage.textContent = "Choose a document to upload.";
+}
+
+function setSignedOut() {
+    accessToken = "";
+    currentUsername = "";
+    refreshToken = "";
+    ORGANIZATION_ID = null;
+    DOCUMENTS_URL = "";
+    CONVERSATIONS_URL = "";
+    currentConversationId = null;
+
+    sessionStorage.removeItem("nexusai_access_token");
+    sessionStorage.removeItem("nexusai_refresh_token");
+    sessionStorage.removeItem("nexusai_username");
+    sessionStorage.removeItem("nexusai_organization_id");
+
+    authStatus.textContent = "● Login required";
+    logoutButton.hidden = true;
+
+    authForms.hidden = false;
+    workspaceControls.hidden = true;
+
+    organizationSelect.replaceChildren();
+
+    questionInput.disabled = true;
+    askButton.disabled = true;
+
+    uploadButton.disabled = false;
+    uploadButton.textContent = "Choose File";
+
+    fileMessage.textContent = "Sign in to upload a document.";
+
+    documentList.replaceChildren();
+    const memberList = document.getElementById("memberList");
+const memberMessage = document.getElementById("memberMessage");
+
+if (memberList) {
+    memberList.replaceChildren();
+}
+
+if (memberMessage) {
+    memberMessage.textContent = "";
+}
+
+const addMemberCard = document
+    .getElementById("addMemberForm")
+    ?.closest(".card");
+
+if (addMemberCard) {
+    addMemberCard.hidden = true;
+}
+    const emptyDocuments = document.createElement("div");
+    emptyDocuments.className = "text-center muted small py-4";
+    emptyDocuments.textContent = "Sign in to load your documents.";
+    documentList.appendChild(emptyDocuments);
+
+    conversationList.textContent = "Sign in to load your conversations.";
+    answerArea.textContent =
+        "Sign in and upload a document to ask questions.";
+    sourceArea.replaceChildren();
+}
+
+
+/* =========================================================
+   5. AUTHENTICATED API REQUEST
+========================================================= */
+
+async function apiRequest(url, options = {}) {
+    if (!accessToken) {
+        throw new Error("Please sign in first.");
+    }
+
+    const headers = new Headers(options.headers || {});
+    headers.set("Authorization", `Bearer ${accessToken}`);
+
+    if (typeof options.body === "string") {
+        headers.set("Content-Type", "application/json");
+    }
+
+    const response = await fetch(url, {
+        ...options,
+        headers
+    });
+
+    const data = await readResponse(response);
+
+    if (response.status === 401) {
+        setSignedOut();
+        throw new Error("Your session has expired. Please sign in again.");
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            getErrorMessage(data, `Request failed (${response.status}).`)
+        );
+    }
+
+    return data;
+}
+
+
+/* =========================================================
+   6. LOGIN AND AUTOMATIC LOGIN AFTER REGISTRATION
+========================================================= */
+
+async function authenticate(username, password) {
+    const response = await fetch(TOKEN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    });
+
+    const data = await readResponse(response);
+
+    if (!response.ok || !data.access) {
+        throw new Error(
+            getErrorMessage(data, "Authentication failed. Check your credentials.")
+        );
+    }
+
+    accessToken = data.access;
+    refreshToken = data.refresh || "";
+
+    sessionStorage.setItem("nexusai_access_token", accessToken);
+    sessionStorage.setItem("nexusai_username", username);
+
+    if (refreshToken) {
+        sessionStorage.setItem("nexusai_refresh_token", refreshToken);
+    }
+
+    setSignedIn(username);
+
+    await loadOrganizations();
+}
+
+// Registration
+registerForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(registerForm);
+
+    const payload = {
+        username: formData.get("username").trim(),
+        email: formData.get("email").trim(),
+        organization_name: formData.get("organization_name").trim(),
+        password: formData.get("password"),
+        password_confirm: formData.get("password_confirm")
+    };
+
+    if (payload.password !== payload.password_confirm) {
+        showMessage(registerMessage, "Passwords do not match.");
+        return;
+    }
+
+    registerButton.disabled = true;
+    registerButton.textContent = "Creating account...";
+
+    try {
+        const response = await fetch(REGISTER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await readResponse(response);
+
+        if (!response.ok) {
+            throw new Error(
+                getErrorMessage(data, "Registration failed.")
+            );
+        }
+
+        showMessage(
+            registerMessage,
+            "Account created. Signing you in...",
+            true
+        );
+
+        // Registration creates the user's first organization
+        // in the backend. Do not create it again here.
+        await authenticate(payload.username, payload.password);
+
+        registerForm.reset();
+
+    } catch (error) {
+        showMessage(registerMessage, error.message);
+    } finally {
+        registerButton.disabled = false;
+        registerButton.textContent = "Create account";
+    }
+});
+
+// Normal login
+loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+        showMessage(loginMessage, "Enter your username and password.");
+        return;
+    }
+
+    loginButton.disabled = true;
+    loginButton.textContent = "Signing in...";
+
+    try {
+        await authenticate(username, password);
+        passwordInput.value = "";
+        showMessage(loginMessage, "Successfully signed in.", true);
+    } catch (error) {
+        showMessage(loginMessage, error.message);
+    } finally {
+        loginButton.disabled = false;
+        loginButton.textContent = "Sign in";
+    }
+});
+
+
+/* =========================================================
+   7. ORGANIZATION MANAGEMENT
+========================================================= */
+
+async function loadOrganizations(selectedId = null) {
+    const response = await apiRequest(ORGANIZATIONS_URL);
+
+    // Support both normal arrays and paginated responses.
+    const organizations = Array.isArray(response)
+        ? response
+        : Array.isArray(response.results)
+            ? response.results
+            : [];
+
+    organizationSelect.replaceChildren();
+
+    if (organizations.length === 0) {
+        setSignedOut();
+        throw new Error("No organizations are available for this account.");
+    }
+
+    organizations.forEach((organization) => {
+        const option = document.createElement("option");
+        option.value = organization.id;
+        option.textContent = organization.name;
+        organizationSelect.appendChild(option);
+    });
+
+    const savedId =
+        selectedId ||
+        sessionStorage.getItem("nexusai_organization_id");
+
+    const selectedOrganization = organizations.find(
+        org => String(org.id) === String(savedId)
+    ) || organizations[0];
+
+    organizationSelect.value = selectedOrganization.id;
+
+    await selectOrganization(selectedOrganization.id);
+
+    workspaceControls.hidden = false;
+    authForms.hidden = true;
+}
+
+async function selectOrganization(id) {
+    if (!id) return;
+
+    setOrganizationEndpoints(id);
+
+    sessionStorage.setItem(
+        "nexusai_organization_id",
+        String(ORGANIZATION_ID)
+    );
+
+    resetChat();
+
+    documentList.replaceChildren();
+
+    const loading = document.createElement("div");
+    loading.className = "text-center muted small py-4";
+    loading.textContent = "Loading documents...";
+    documentList.appendChild(loading);
+
+    await Promise.all([
+        loadDocuments(),
+        loadConversations(),
+        loadMembers()
+    ]);
+
+    showMessage(
+        organizationMessage,
+        "Organization workspace loaded.",
+        true
+    );
+}
+
+// Switch organization
+organizationSelect.addEventListener("change", async () => {
+    try {
+        organizationSelect.disabled = true;
+        await selectOrganization(organizationSelect.value);
+    } catch (error) {
+        showMessage(organizationMessage, error.message);
+    } finally {
+        organizationSelect.disabled = false;
+    }
+});
+
+// Create another organization
+createOrganizationButton.addEventListener("click", async () => {
+    const name = window.prompt("Enter the new organization name:");
+
+    if (!name || !name.trim()) return;
+
+    createOrganizationButton.disabled = true;
+    createOrganizationButton.textContent = "Creating...";
+
+    try {
+        const organization = await apiRequest(ORGANIZATIONS_URL, {
+            method: "POST",
+            body: JSON.stringify({ name: name.trim() })
+        });
+
+        await loadOrganizations(organization.id);
+
+        showMessage(
+            organizationMessage,
+            `Organization "${organization.name}" created successfully.`,
+            true
+        );
+    } catch (error) {
+        showMessage(organizationMessage, error.message);
+    } finally {
+        createOrganizationButton.disabled = false;
+        createOrganizationButton.textContent = "+ Create organization";
+    }
+});
+async function loadMembers() {
+    const memberList = document.getElementById("memberList");
+    const memberMessage = document.getElementById("memberMessage");
+
+    if (!MEMBERS_URL || !memberList) return;
+
+    memberList.replaceChildren();
+
+    const loading = document.createElement("p");
+    loading.className = "muted small";
+    loading.textContent = "Loading members...";
+    memberList.appendChild(loading);
+
+    try {
+        const response = await apiRequest(MEMBERS_URL);
+
+        const members = Array.isArray(response)
+            ? response
+            : response.results || [];
+        // Identify the current user's organization role.
+const currentMembership = members.find(
+    member => member.username === currentUsername
+);
+
+const currentRole = currentMembership?.role || "";
+
+// Show the Add Member form only to OWNER and ADMIN.
+const addMemberCard = addMemberForm?.closest(".card");
+
+if (addMemberCard) {
+    addMemberCard.hidden = !["OWNER", "ADMIN"].includes(currentRole);
+}
+
+// Only OWNER can add ADMIN accounts.
+const memberRoleSelect = document.getElementById("memberRoleSelect");
+
+if (memberRoleSelect) {
+    memberRoleSelect.replaceChildren();
+
+    const memberOption = document.createElement("option");
+    memberOption.value = "MEMBER";
+    memberOption.textContent = "Member";
+    memberRoleSelect.appendChild(memberOption);
+
+    if (currentRole === "OWNER") {
+        const adminOption = document.createElement("option");
+        adminOption.value = "ADMIN";
+        adminOption.textContent = "Admin";
+        memberRoleSelect.appendChild(adminOption);
+    }
+}
+        memberList.replaceChildren();
+
+        if (members.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "muted small";
+            empty.textContent = "No members found.";
+            memberList.appendChild(empty);
+            return;
+        }
+
+        members.forEach((member) => {
+    const card = document.createElement("div");
+    card.className = "card mb-2";
+
+    const body = document.createElement("div");
+    body.className =
+        "card-body d-flex justify-content-between align-items-center flex-wrap gap-3";
+
+    const details = document.createElement("div");
+
+    const username = document.createElement("strong");
+    username.textContent = member.username;
+
+    const email = document.createElement("div");
+    email.className = "muted small";
+    email.textContent = member.email;
+
+    const role = document.createElement("span");
+    role.className = "badge bg-secondary mt-2";
+    role.textContent = member.role;
+
+    details.append(username, email, role);
+    body.appendChild(details);
+
+    // Determine whether the current user can manage this member.
+    const canManage =
+        member.role !== "OWNER" &&
+        (
+            currentRole === "OWNER" ||
+            (currentRole === "ADMIN" && member.role === "MEMBER")
+        );
+
+    if (canManage) {
+        const actions = document.createElement("div");
+        actions.className = "d-flex gap-2 align-items-center";
+
+        // Only OWNER can change member roles.
+        if (currentRole === "OWNER") {
+            const roleSelect = document.createElement("select");
+            roleSelect.className = "form-select form-select-sm";
+
+            ["MEMBER", "ADMIN"].forEach((roleName) => {
+                const option = document.createElement("option");
+                option.value = roleName;
+                option.textContent = roleName;
+                option.selected = member.role === roleName;
+                roleSelect.appendChild(option);
+            });
+
+            roleSelect.addEventListener("change", async () => {
+                try {
+                    await apiRequest(
+                        `${MEMBERS_URL}${member.id}/`,
+                        {
+                            method: "PATCH",
+                            body: JSON.stringify({
+                                role: roleSelect.value
+                            })
+                        }
+                    );
+
+                    showMessage(
+                        memberMessage,
+                        "Member role updated.",
+                        true
+                    );
+
+                    await loadMembers();
+
+                } catch (error) {
+                    showMessage(
+                        memberMessage,
+                        error.message || "Unable to update role.",
+                        false
+                    );
+
+                    await loadMembers();
+                }
+            });
+
+            actions.appendChild(roleSelect);
+        }
+
+        // Remove member button.
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "btn btn-sm btn-outline-danger";
+        removeButton.textContent = "Remove";
+
+        removeButton.addEventListener("click", async () => {
+            if (!window.confirm(
+                `Remove ${member.username} from this organization?`
+            )) {
+                return;
+            }
+
+            try {
+                await apiRequest(
+                    `${MEMBERS_URL}${member.id}/`,
+                    { method: "DELETE" }
+                );
+
+                showMessage(
+                    memberMessage,
+                    "Member removed successfully.",
+                    true
+                );
+
+                await loadMembers();
+
+            } catch (error) {
+                showMessage(
+                    memberMessage,
+                    error.message || "Unable to remove member.",
+                    false
+                );
+            }
+        });
+
+        actions.appendChild(removeButton);
+        body.appendChild(actions);
+    }
+
+    card.appendChild(body);
+    memberList.appendChild(card);
+});
+
+    } catch (error) {
+        memberList.replaceChildren();
+
+        const errorText = document.createElement("p");
+        errorText.className = "text-danger small";
+        errorText.textContent = error.message || "Unable to load members.";
+
+        memberList.appendChild(errorText);
+    }
+}
+
+/* =========================================================
+   8. DOCUMENT MANAGEMENT
+========================================================= */
+
+async function loadDocuments() {
+    if (!accessToken || !ORGANIZATION_ID) return;
+
+    documentList.replaceChildren();
+
+    const loading = document.createElement("div");
+    loading.className = "text-center muted small py-4";
+    loading.textContent = "Loading documents...";
+    documentList.appendChild(loading);
+
+    try {
+        const response = await apiRequest(DOCUMENTS_URL);
+
+        const documents = Array.isArray(response)
+            ? response
+            : Array.isArray(response.results)
+                ? response.results
+                : [];
+
+        documentList.replaceChildren();
+
+        if (documents.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "text-center muted small py-4";
+            empty.textContent = "No documents uploaded yet.";
+            documentList.appendChild(empty);
+            return;
+        }
+
+        documents.forEach((documentData) => {
+            const item = document.createElement("div");
+            item.className = "document-item";
+
+            const row = document.createElement("div");
+            row.className =
+                "d-flex justify-content-between align-items-start gap-3";
+
+            const details = document.createElement("div");
+            details.className = "flex-grow-1";
+
+            const title = document.createElement("div");
+            title.className = "fw-semibold";
+            title.textContent =
+                documentData.title || "Untitled document";
+
+            const status = document.createElement("div");
+            status.className = "document-meta";
+            status.textContent =
+                "Status: " + (documentData.status || "unknown");
+
+            details.append(title, status);
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className =
+                "btn btn-sm btn-outline-danger flex-shrink-0";
+            deleteButton.textContent = "Delete";
+
+            deleteButton.addEventListener("click", async () => {
+                if (!window.confirm(
+                    `Delete "${documentData.title}"? This cannot be undone.`
+                )) return;
+
+                deleteButton.disabled = true;
+
+                try {
+                    await apiRequest(
+                        `${DOCUMENTS_URL}${documentData.id}/`,
+                        { method: "DELETE" }
+                    );
+
+                    showMessage(fileMessage, "Document deleted.", true);
+                    await loadDocuments();
+                } catch (error) {
+                    showMessage(fileMessage, error.message);
+                    deleteButton.disabled = false;
+                }
+            });
+
+            row.append(details, deleteButton);
+            item.appendChild(row);
+            documentList.appendChild(item);
+        });
+
+    } catch (error) {
+        documentList.replaceChildren();
+        const message = document.createElement("div");
+        message.className = "message text-danger";
+        message.textContent = error.message;
+        documentList.appendChild(message);
+    }
+}
+
+// Open file picker
+uploadButton.addEventListener("click", () => {
+    if (!accessToken || !ORGANIZATION_ID) {
+        showMessage(fileMessage, "Please sign in first.");
+        return;
+    }
+
+    fileInput.click();
+});
+
+// Upload document
+fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const allowedExtensions = [
+        ".pdf", ".docx", ".pptx", ".xlsx",
+        ".csv", ".txt", ".md", ".html", ".htm"
+    ];
+
+    const lowerName = file.name.toLowerCase();
+    const supported = allowedExtensions.some(
+        extension => lowerName.endsWith(extension)
+    );
+
+    if (!supported) {
+        showMessage(fileMessage, "Unsupported file type.");
+        fileInput.value = "";
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+        showMessage(fileMessage, "The file must be 10 MB or smaller.");
+        fileInput.value = "";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+        "title",
+        file.name.replace(/\.[^.]+$/, "").trim() || "Untitled document"
+    );
+
+    uploadButton.disabled = true;
+    uploadButton.textContent = "Uploading...";
+
+    try {
+        const result = await apiRequest(DOCUMENTS_URL, {
+            method: "POST",
+            body: formData
+        });
+
+        showMessage(
+            fileMessage,
+            `Uploaded: ${result.title || file.name}`,
+            true
+        );
+
+        fileInput.value = "";
+        await loadDocuments();
+
+    } catch (error) {
+        showMessage(fileMessage, error.message);
+    } finally {
+        uploadButton.disabled = false;
+        uploadButton.textContent = "Choose File";
+    }
+});
+
+
+/* =========================================================
+   9. CONVERSATION MANAGEMENT
+========================================================= */
+
+async function loadConversations() {
+    if (!accessToken || !ORGANIZATION_ID) return;
+
+    conversationList.replaceChildren();
+
+    try {
+        const response = await apiRequest(CONVERSATIONS_URL);
+
+        const conversations = Array.isArray(response)
+            ? response
+            : Array.isArray(response.results)
+                ? response.results
+                : [];
+
+        if (conversations.length === 0) {
+            conversationList.textContent = "No conversations yet.";
+            return;
+        }
+
+        conversations.forEach((conversation) => {
+            const row = document.createElement("div");
+            row.className = "d-flex gap-2 mb-2";
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "btn btn-light flex-grow-1 text-start";
+            button.textContent =
+                conversation.title || "New conversation";
+
+            if (Number(conversation.id) === Number(currentConversationId)) {
+                button.classList.add("border-primary");
+            }
+
+            button.addEventListener("click", async () => {
+                currentConversationId = conversation.id;
+                await loadConversationMessages(conversation.id);
+                await loadConversations();
+            });
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "btn btn-outline-danger btn-sm";
+            deleteButton.textContent = "Delete";
+
+            deleteButton.addEventListener("click", async () => {
+                await deleteConversation(conversation.id);
+            });
+
+            row.append(button, deleteButton);
+            conversationList.appendChild(row);
+        });
+
+    } catch (error) {
+        conversationList.textContent = error.message;
+    }
+}
+
+async function createNewConversation() {
+    if (!ORGANIZATION_ID) {
+        alert("Select an organization first.");
+        return;
+    }
+
+    newConversationButton.disabled = true;
+
+    try {
+        const conversation = await apiRequest(CONVERSATIONS_URL, {
+            method: "POST",
+            body: JSON.stringify({ title: "New conversation" })
+        });
+
+        currentConversationId = conversation.id;
+
+        await loadConversations();
+
+        answerArea.textContent = "Ask your first question...";
+        sourceArea.replaceChildren();
+
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        newConversationButton.disabled = false;
+    }
+}
+
+async function deleteConversation(conversationId) {
+    if (!window.confirm("Delete this conversation?")) return;
+
+    try {
+        await apiRequest(
+            `${CONVERSATIONS_URL}${conversationId}/`,
+            { method: "DELETE" }
+        );
+
+        if (Number(currentConversationId) === Number(conversationId)) {
+            currentConversationId = null;
+            answerArea.textContent =
+                "Select a conversation or start a new chat.";
+            sourceArea.replaceChildren();
+        }
+
+        await loadConversations();
+
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function loadConversationMessages(conversationId) {
+    answerArea.textContent = "Loading conversation...";
+    sourceArea.replaceChildren();
+
+    try {
+        const conversation = await apiRequest(
+            `${CONVERSATIONS_URL}${conversationId}/`
+        );
+
+        answerArea.replaceChildren();
+
+        if (!conversation.messages || conversation.messages.length === 0) {
+            answerArea.textContent = "Ask your first question...";
+            return;
+        }
+
+        conversation.messages.forEach((message) => {
+            const element = document.createElement("div");
+            element.className = "mb-3";
+
+            const role = document.createElement("strong");
+            role.textContent =
+                message.role === "user" ? "You" : "NexusAI";
+
+            const content = document.createElement("div");
+            content.textContent = message.content;
+
+            element.append(role, content);
+            answerArea.appendChild(element);
+        });
+
+    } catch (error) {
+        answerArea.textContent = error.message;
+    }
+}
+
+newConversationButton.addEventListener("click", createNewConversation);
+
+
+/* =========================================================
+   10. SOURCE RENDERING
+========================================================= */
+
+function renderSources(result) {
+    sourceArea.replaceChildren();
+
+    const sources = Array.isArray(result.sources)
+        ? result.sources
+        : Array.isArray(result.citations)
+            ? result.citations
+            : [];
+
+    if (sources.length === 0) return;
+
+    const heading = document.createElement("h3");
+    heading.className = "h6 fw-bold mt-3";
+    heading.textContent = "Sources";
+    sourceArea.appendChild(heading);
+
+    sources.forEach((source, index) => {
+        const card = document.createElement("div");
+        card.className = "source-card";
+
+        const title = document.createElement("div");
+        title.className = "fw-semibold";
+        title.textContent =
+            source.title ||
+            source.document_title ||
+            `Source ${index + 1}`;
+
+        card.appendChild(title);
+
+        const excerptText =
+            source.excerpt ??
+            source.text ??
+            source.content ??
+            source.chunk ??
+            "";
+
+        if (excerptText) {
+            const excerpt = document.createElement("p");
+            excerpt.className = "small mt-2 mb-2";
+            excerpt.textContent = excerptText;
+            card.appendChild(excerpt);
+        }
+
+        sourceArea.appendChild(card);
+    });
+}
+
+
+/* =========================================================
+   11. ASK NEXUSAI
+========================================================= */
+
+questionForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const question = questionInput.value.trim();
+
+    if (!question) {
+        showMessage(askMessage, "Enter a question first.");
+        return;
+    }
+
+    if (!accessToken || !ORGANIZATION_ID) {
+        showMessage(askMessage, "Sign in and select an organization first.");
+        return;
+    }
+
+    askButton.disabled = true;
+    questionInput.disabled = true;
+    askButton.textContent = "Thinking...";
+    askMessage.textContent = "";
+    answerArea.textContent = "Searching your documents...";
+    sourceArea.replaceChildren();
+
+    try {
+        if (!currentConversationId) {
+            const conversation = await apiRequest(CONVERSATIONS_URL, {
+                method: "POST",
+                body: JSON.stringify({ title: "New conversation" })
+            });
+
+            currentConversationId = conversation.id;
+        }
+
+        const result = await apiRequest(
+            `${CONVERSATIONS_URL}${currentConversationId}/ask/`,
+            {
+                method: "POST",
+                body: JSON.stringify({ question })
+            }
+        );
+
+        await loadConversationMessages(currentConversationId);
+        renderSources(result);
+        await loadConversations();
+
+        questionInput.value = "";
+
+    } catch (error) {
+        answerArea.textContent = "Unable to answer this question.";
+        showMessage(askMessage, error.message);
+    } finally {
+        askButton.disabled = !accessToken || !ORGANIZATION_ID;
+        questionInput.disabled = !accessToken || !ORGANIZATION_ID;
+        askButton.textContent = "Ask ↗";
+    }
+});
+
+
+/* =========================================================
+   12. LOGOUT AND INITIALIZATION
+========================================================= */
+
+refreshButton.addEventListener("click", loadDocuments);
+
+logoutButton.addEventListener("click", () => {
+    setSignedOut();
+    showMessage(loginMessage, "You have been signed out.", true);
+});
+
+async function initialize() {
+    questionInput.disabled = !accessToken;
+    askButton.disabled = !accessToken;
+
+    if (!accessToken) {
+        setSignedOut();
+        return;
+    }
+
+    const savedUsername = sessionStorage.getItem("nexusai_username") || "";
+    setSignedIn(savedUsername);
+    authStatus.textContent = savedUsername
+        ? `● Signed in as ${savedUsername}`
+        : "● Signed in";
+    authForms.hidden = true;
+    workspaceControls.hidden = false;
+    logoutButton.hidden = false;
+
+    try {
+        await loadOrganizations();
+        authStatus.textContent = "● Signed in";
+    } catch (error) {
+        console.error("Session initialization failed:", error);
+        setSignedOut();
+    }
+}
+const refreshMembersButton = document.getElementById("refreshMembersButton");
+const addMemberForm = document.getElementById("addMemberForm");
+const addMemberButton = document.getElementById("addMemberButton");
+
+if (addMemberForm) {
+    addMemberForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const email = document.getElementById("memberEmailInput").value.trim();
+        const role = document.getElementById("memberRoleSelect").value;
+
+        addMemberButton.disabled = true;
+        addMemberButton.textContent = "Adding...";
+
+        try {
+            await apiRequest(MEMBERS_URL, {
+                method: "POST",
+                body: JSON.stringify({ email, role })
+            });
+
+            showMessage(
+                document.getElementById("memberMessage"),
+                "Member added successfully.",
+                true
+            );
+
+            addMemberForm.reset();
+            await loadMembers();
+
+        } catch (error) {
+            showMessage(
+                document.getElementById("memberMessage"),
+                error.message || "Unable to add member.",
+                false
+            );
+        } finally {
+            addMemberButton.disabled = false;
+            addMemberButton.textContent = "Add Member";
+        }
+    });
+}
+if (refreshMembersButton) {
+    refreshMembersButton.addEventListener("click", loadMembers);
+}
+
+
+/* Screen navigation: show one workspace section at a time. */
+(function setupScreenNavigation() {
+    const screens = Array.from(document.querySelectorAll('[data-screen]'));
+    const navLinks = Array.from(document.querySelectorAll('[data-screen-target]'));
+    function showScreen(name) {
+        const target = screens.find((screen) => screen.dataset.screen === name);
+        if (!target) return;
+        screens.forEach((screen) => { screen.hidden = screen !== target; });
+        navLinks.forEach((link) => {
+            const active = link.dataset.screenTarget === name;
+            link.classList.toggle('active', active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+        history.replaceState(null, '', '#' + name);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    navLinks.forEach((link) => link.addEventListener('click', (event) => {
+        event.preventDefault(); showScreen(link.dataset.screenTarget);
+    }));
+    document.querySelectorAll('[data-go-screen]').forEach((button) => {
+        button.addEventListener('click', () => showScreen(button.dataset.goScreen));
+    });
+    const initial = location.hash.replace('#', '');
+    const valid = screens.some((screen) => screen.dataset.screen === initial);
+    showScreen(valid ? initial : 'dashboard');
+})();
+
+initialize();
+</script>
+</body>
+</html>
