@@ -1,8 +1,6 @@
 
 import re
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 from .models import Document
 
@@ -235,79 +233,3 @@ def split_into_chunks(text, chunk_size=900, overlap=150):
     ]
 
 
-def retrieve_relevant_chunks(organization_id, question, top_k=4):
-    """Retrieve keyword-relevant passages from completed documents."""
-
-    if (
-        not isinstance(question, str)
-        or not question.strip()
-        or top_k < 1
-    ):
-        return []
-
-    documents = Document.objects.filter(
-        organization_id=organization_id,
-        status=Document.Status.COMPLETED,
-    ).exclude(
-        extracted_text=""
-    ).order_by("id")
-
-    passages = []
-
-    for document in documents:
-        chunks = split_into_chunks(
-            document.extracted_text or ""
-        )
-
-        for index, chunk in enumerate(chunks):
-            passages.append({
-                "document_id": document.id,
-                "title": document.title,
-                "chunk_index": index,
-                "text": chunk,
-            })
-
-    if not passages:
-        return []
-
-    vectorizer = TfidfVectorizer(
-        stop_words="english",
-        ngram_range=(1, 2),
-        sublinear_tf=True,
-    )
-
-    try:
-        matrix = vectorizer.fit_transform(
-            [passage["text"] for passage in passages]
-            + [question.strip()]
-        )
-
-    except ValueError:
-        return []
-
-    document_vectors = matrix[:-1]
-    question_vector = matrix[-1]
-
-    scores = cosine_similarity(
-        question_vector,
-        document_vectors,
-    ).ravel()
-
-    ranked_indices = scores.argsort()[::-1]
-    results = []
-
-    for index in ranked_indices:
-        score = float(scores[index])
-
-        if score <= 0:
-            continue
-
-        results.append({
-            **passages[index],
-            "relevance_score": round(score, 4),
-        })
-
-        if len(results) >= top_k:
-            break
-
-    return results
