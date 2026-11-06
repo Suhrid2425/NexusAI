@@ -23,17 +23,13 @@ async def read_blob_stream(pathname):
         access="private",
     )
 
-    if result is None or result.status_code != 200:
+    if result is None:
         raise FileNotFoundError(
             f"Blob not found: {pathname}"
         )
 
-    chunks = []
-
-    async for chunk in result.stream:
-        chunks.append(chunk)
-
-    return b"".join(chunks)
+    # GetResult.body contains the complete file as bytes.
+    return result.body
 
 
 @deconstructible
@@ -63,17 +59,24 @@ class VercelBlobStorage(Storage):
                 "VercelBlobStorage supports read-only access."
             )
 
-        data = run_async(read_blob_stream(name))
+        data = run_async(
+            read_blob_stream(name)
+        )
 
         return ContentFile(data, name=name)
 
     def delete(self, name):
-        run_async(delete_blob(name))
+        run_async(
+            delete_blob(name)
+        )
 
     def exists(self, name):
         try:
-            run_async(head_blob(name))
+            run_async(
+                head_blob(name)
+            )
             return True
+
         except Exception:
             return False
 

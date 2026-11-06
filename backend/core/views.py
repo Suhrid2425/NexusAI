@@ -782,7 +782,7 @@ class OrganizationDocumentDownloadView(APIView):
 
             if result is None or result.status_code != 200:
                 raise FileNotFoundError("Document not found in Blob storage.")
-
+            return result.body
             chunks = []
 
             async for chunk in result.stream:
