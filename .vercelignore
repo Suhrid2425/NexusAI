@@ -1,0 +1,10 @@
+@"
+.venv
+.git
+__pycache__
+*.pyc
+.env
+.env.*
+backend/media
+backend/staticfiles
+.ipynb_checkpoints
