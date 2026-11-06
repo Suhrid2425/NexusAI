@@ -49,6 +49,8 @@ ALLOWED_HOSTS.extend(
 # Trusted HTTPS origins for CSRF protection.
 CSRF_TRUSTED_ORIGINS = [
     "https://nexus-ai-ashy-iota.vercel.app",
+    "https://nexus-ai-git-main-fresher-go.vercel.app",
+
 ]
 
 EXTRA_CSRF_ORIGINS = [
