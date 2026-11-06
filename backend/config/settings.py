@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "nexus-ai-ashy-iota.vercel.app",
+    "nexus-p3ukw6kze-fresher-go.vercel.app"
 ]
 
 # Additional hosts can be supplied through environment variables.
