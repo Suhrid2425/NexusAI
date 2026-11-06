@@ -273,14 +273,39 @@ REST_FRAMEWORK = {
 
 
 # --------------------------------------------------
-# UPLOADED MEDIA
+# UPLOADED MEDIA & VERCEL BLOB
 # --------------------------------------------------
 
 MEDIA_URL = "/media/"
-
 MEDIA_ROOT = BASE_DIR / "media"
 
+BLOB_READ_WRITE_TOKEN = (
+    os.getenv("NEXUS_READ_WRITE_TOKEN")
+    or os.getenv("BLOB_READ_WRITE_TOKEN")
+)
 
+if BLOB_READ_WRITE_TOKEN:
+    os.environ["BLOB_READ_WRITE_TOKEN"] = BLOB_READ_WRITE_TOKEN
+
+# Use Vercel Blob in production and local storage during development.
+if os.getenv("VERCEL"):
+    STORAGES = {
+        "default": {
+            "BACKEND": "core.storage.VercelBlobStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 # --------------------------------------------------
 # DEFAULT PRIMARY KEY
 # --------------------------------------------------

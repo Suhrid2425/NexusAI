@@ -1,9 +1,11 @@
 
 from pathlib import Path
 
+from django.urls import reverse
 from rest_framework import serializers
 
 from .models import ChatMessage, Conversation, Document
+
 
 SUPPORTED_EXTENSIONS = {
     ".pdf",
@@ -17,10 +19,14 @@ SUPPORTED_EXTENSIONS = {
     ".htm",
 }
 
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+# Keep below Vercel's 4.5 MB request-body limit.
+MAX_FILE_SIZE = 4 * 1024 * 1024  # 4 MB
 
 
 class DocumentSerializer(serializers.ModelSerializer):
+    file = serializers.FileField(write_only=True)
+    download_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Document
         fields = [
@@ -29,6 +35,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             "uploaded_by",
             "title",
             "file",
+            "download_url",
             "status",
             "created_at",
         ]
@@ -39,6 +46,22 @@ class DocumentSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
         ]
+
+    def get_download_url(self, obj):
+        request = self.context.get("request")
+
+        url = reverse(
+            "organization-document-download",
+            kwargs={
+                "organization_id": obj.organization_id,
+                "document_id": obj.id,
+            },
+        )
+
+        if request:
+            return request.build_absolute_uri(url)
+
+        return url
 
     def validate_title(self, value):
         value = value.strip()
@@ -66,7 +89,7 @@ class DocumentSerializer(serializers.ModelSerializer):
 
         if value.size > MAX_FILE_SIZE:
             raise serializers.ValidationError(
-                "Maximum file size is 10 MB."
+                "Maximum file size is 4 MB."
             )
 
         if extension == ".pdf":
@@ -98,6 +121,7 @@ class AskDocumentSerializer(serializers.Serializer):
             )
 
         return value
+
 
 class ChatMessageSerializer(serializers.ModelSerializer):
     class Meta:

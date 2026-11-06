@@ -1,6 +1,11 @@
 
 import logging
+import asyncio
+import mimetypes
 
+from django.http import HttpResponse
+from django.utils.http import content_disposition_header
+from vercel.blob import get_blob
 from django.shortcuts import render
 from django.db import IntegrityError
 from rest_framework import status
@@ -739,3 +744,90 @@ class OrganizationMemoryDetailView(APIView):
             {"detail": "Memory deleted successfully."},
             status=status.HTTP_200_OK,
         )
+
+class OrganizationDocumentDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, organization_id, document_id):
+        # 1. Verify organization membership.
+        membership = Membership.objects.filter(
+            user=request.user,
+            organization_id=organization_id,
+        ).first()
+
+        if membership is None:
+            return Response(
+                {"detail": "Organization not found or access denied."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # 2. Find the requested document.
+        document = Document.objects.filter(
+            id=document_id,
+            organization_id=organization_id,
+        ).first()
+
+        if document is None:
+            return Response(
+                {"detail": "Document not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # 3. Download and consume the Blob stream in one async operation.
+        async def download_document():
+            result = await get_blob(
+                document.file.name,
+                access="private",
+            )
+
+            if result is None or result.status_code != 200:
+                raise FileNotFoundError("Document not found in Blob storage.")
+
+            chunks = []
+
+            async for chunk in result.stream:
+                chunks.append(chunk)
+
+            return b"".join(chunks)
+
+        try:
+            file_content = asyncio.run(download_document())
+
+            # 4. Prepare the download response.
+            filename = document.file.name.split("/")[-1]
+
+            content_type = (
+                mimetypes.guess_type(filename)[0]
+                or "application/octet-stream"
+            )
+
+            response = HttpResponse(
+                file_content,
+                content_type=content_type,
+            )
+
+            response["Content-Disposition"] = content_disposition_header(
+                True,
+                filename,
+            )
+            response["X-Content-Type-Options"] = "nosniff"
+            response["Cache-Control"] = "private, no-store"
+
+            return response
+
+        except FileNotFoundError:
+            return Response(
+                {"detail": "Document file not found in storage."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        except Exception:
+            logger.exception(
+                "Document download failed for document ID %s",
+                document.id,
+            )
+
+            return Response(
+                {"detail": "Unable to download this document."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
