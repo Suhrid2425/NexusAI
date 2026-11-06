@@ -1,3 +1,4 @@
+
 """
 Django settings for config project.
 """
@@ -6,21 +7,47 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Build paths inside the project
+
+# --------------------------------------------------
+# BASE CONFIGURATION
+# --------------------------------------------------
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load the project-root .env file during local development.
 load_dotenv(BASE_DIR.parent / ".env")
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-# Security settings
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
+
+# --------------------------------------------------
+# SECURITY SETTINGS
+# --------------------------------------------------
+
+# Comma-separated hostnames, without http:// or https://
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv("ALLOWED_HOSTS", "").split(",")
     if host.strip()
 ]
 
-# Application definition
+# Comma-separated trusted origins, including https://
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+# Vercel terminates HTTPS and forwards the original protocol.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+# --------------------------------------------------
+# APPLICATION DEFINITION
+# --------------------------------------------------
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -28,11 +55,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     "rest_framework",
+
     "accounts",
     "organizations",
     "core",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -44,9 +74,14 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
 ROOT_URLCONF = "config.urls"
 
-# HTML templates
+
+# --------------------------------------------------
+# TEMPLATES
+# --------------------------------------------------
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -62,9 +97,14 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database
+
+# --------------------------------------------------
+# DATABASE
+# --------------------------------------------------
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -76,7 +116,11 @@ DATABASES = {
     }
 }
 
-# Password validation
+
+# --------------------------------------------------
+# PASSWORD VALIDATION
+# --------------------------------------------------
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -92,26 +136,49 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization
+
+# --------------------------------------------------
+# INTERNATIONALIZATION
+# --------------------------------------------------
+
 LANGUAGE_CODE = "en-us"
+
 TIME_ZONE = "UTC"
+
 USE_I18N = True
+
 USE_TZ = True
 
-# Static files
-STATIC_URL = "static/"
 
-# Email
+# --------------------------------------------------
+# STATIC FILES
+# --------------------------------------------------
+
+STATIC_URL = "/static/"
+
+
+# --------------------------------------------------
+# EMAIL
+# --------------------------------------------------
+
 MAILERS = {
     "default": {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
 
-# Custom user model
+
+# --------------------------------------------------
+# CUSTOM USER MODEL
+# --------------------------------------------------
+
 AUTH_USER_MODEL = "accounts.User"
 
-# Django REST Framework
+
+# --------------------------------------------------
+# DJANGO REST FRAMEWORK
+# --------------------------------------------------
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -121,6 +188,11 @@ REST_FRAMEWORK = {
     ),
 }
 
-# Uploaded media
+
+# --------------------------------------------------
+# UPLOADED MEDIA
+# --------------------------------------------------
+
 MEDIA_URL = "/media/"
+
 MEDIA_ROOT = BASE_DIR / "media"
