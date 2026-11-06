@@ -20,8 +20,7 @@ load_dotenv(BASE_DIR.parent / ".env")
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-local-development-key")
 
 # DEBUG should be False in production.
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-
+DEBUG = False
 
 # --------------------------------------------------
 # SECURITY SETTINGS
