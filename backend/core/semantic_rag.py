@@ -1,23 +1,76 @@
 
 import hashlib
+import os
 from functools import lru_cache
 
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
+import voyageai
 
 from .models import Document
 from .rag import split_into_chunks
 
 
-MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+MODEL_NAME = os.getenv(
+    "VOYAGE_EMBEDDING_MODEL",
+    "voyage-4-lite",
+)
 
-# Cache the model after its first use.
-# Importing this module will no longer load the model immediately.
+EMBEDDING_BATCH_SIZE = 64
+
+# Cache the API client rather than loading a local ML model.
 @lru_cache(maxsize=1)
-def _get_embedding_model():
-    """Load the embedding model only when semantic retrieval needs it."""
-    return SentenceTransformer(MODEL_NAME)
+def _get_embedding_client():
+    """Create and reuse the Voyage API client."""
+
+    api_key = os.getenv("VOYAGE_API_KEY")
+
+    if not api_key:
+        raise RuntimeError(
+            "VOYAGE_API_KEY is missing from environment variables."
+        )
+
+    return voyageai.Client(
+        api_key=api_key,
+        max_retries=2,
+        timeout=60,
+    )
+
+
+def _generate_embeddings(texts, input_type):
+    """
+    Generate embeddings using the hosted Voyage API.
+
+    Processes texts in batches to avoid sending excessively
+    large requests.
+    """
+
+    if not texts:
+        return np.empty((0, 1024), dtype=np.float32)
+
+    client = _get_embedding_client()
+    all_embeddings = []
+
+    for start in range(0, len(texts), EMBEDDING_BATCH_SIZE):
+        batch = texts[start:start + EMBEDDING_BATCH_SIZE]
+
+        result = client.embed(
+            texts=batch,
+            model=MODEL_NAME,
+            input_type=input_type,
+        )
+
+        all_embeddings.extend(result.embeddings)
+
+    vectors = np.asarray(
+        all_embeddings,
+        dtype=np.float32,
+    )
+
+    # Normalize vectors so inner product represents cosine similarity.
+    faiss.normalize_L2(vectors)
+
+    return np.ascontiguousarray(vectors, dtype=np.float32)
 
 
 # In-memory cache:
@@ -41,7 +94,6 @@ def _load_passages(organization_id):
     for document in documents:
         text = document.extracted_text or ""
 
-        # Detect changes to document content.
         text_hash = hashlib.sha256(
             text.encode("utf-8")
         ).hexdigest()
@@ -73,7 +125,7 @@ def _get_index(organization_id):
     cached = _embedding_cache.get(organization_id)
 
     if cached and cached["fingerprint"] == fingerprint:
-    # Refresh passage metadata without rebuilding the FAISS index.
+        # Refresh passage metadata without rebuilding the FAISS index.
         cached["passages"] = passages
         return cached
 
@@ -81,19 +133,10 @@ def _get_index(organization_id):
         _embedding_cache.pop(organization_id, None)
         return None
 
-    # Load the model only when embeddings are actually required.
-    model = _get_embedding_model()
-
-    vectors = model.encode(
+    # Generate document embeddings through MongoDB's hosted API.
+    vectors = _generate_embeddings(
         [passage["text"] for passage in passages],
-        convert_to_numpy=True,
-        normalize_embeddings=True,
-        show_progress_bar=False,
-    )
-
-    vectors = np.ascontiguousarray(
-        vectors,
-        dtype=np.float32,
+        input_type="document",
     )
 
     # Inner product on normalized vectors gives cosine similarity.
@@ -143,20 +186,10 @@ def retrieve_semantic_chunks(
     if cached is None:
         return []
 
-    # The model is loaded here only if it was not already loaded
-    # while building the document index.
-    model = _get_embedding_model()
-
-    question_vector = model.encode(
+    # Generate the question embedding through the hosted API.
+    question_vector = _generate_embeddings(
         [question.strip()],
-        convert_to_numpy=True,
-        normalize_embeddings=True,
-        show_progress_bar=False,
-    )
-
-    question_vector = np.ascontiguousarray(
-        question_vector,
-        dtype=np.float32,
+        input_type="query",
     )
 
     # Search for the nearest passages.
@@ -175,7 +208,6 @@ def retrieve_semantic_chunks(
 
         score = float(score)
 
-        # Exclude passages below the requested threshold.
         if score < min_score:
             continue
 

@@ -38,7 +38,7 @@ def retrieve_hybrid_chunks(
         organization_id=organization_id,
         question=question,
         top_k=candidate_k,
-        min_score=0.20,
+        min_score=0.0,
     )
 
     combined = {}

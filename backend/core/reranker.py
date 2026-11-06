@@ -1,25 +1,41 @@
 
+import os
 from functools import lru_cache
 
-from sentence_transformers import CrossEncoder
+import voyageai
 
 
-MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+MODEL_NAME = os.getenv(
+    "VOYAGE_RERANK_MODEL",
+    "rerank-3-lite",
+)
 
 
 @lru_cache(maxsize=1)
 def get_reranker():
     """
-    Load the cross-encoder once and reuse it.
+    Create and reuse the hosted Voyage API client.
     """
-    return CrossEncoder(MODEL_NAME)
+
+    api_key = os.getenv("VOYAGE_API_KEY")
+
+    if not api_key:
+        raise RuntimeError(
+            "VOYAGE_API_KEY is missing from environment variables."
+        )
+
+    return voyageai.Client(
+        api_key=api_key,
+        max_retries=2,
+        timeout=60,
+    )
 
 
 def rerank_chunks(question, passages, top_k=4):
     """
-    Rerank retrieved passages using a cross-encoder.
+    Rerank retrieved passages using Voyage's hosted reranking API.
 
-    The model evaluates the question and each passage together.
+    The API evaluates the question and each passage together.
     """
 
     if (
@@ -30,27 +46,30 @@ def rerank_chunks(question, passages, top_k=4):
     ):
         return []
 
-    model = get_reranker()
+    client = get_reranker()
 
-    pairs = [
-        (question, passage["text"])
+    documents = [
+        passage["text"]
         for passage in passages
     ]
 
-    scores = model.predict(pairs)
+    response = client.rerank(
+        query=question.strip(),
+        documents=documents,
+        model=MODEL_NAME,
+        top_k=min(top_k, len(documents)),
+    )
 
     ranked_passages = []
 
-    for passage, score in zip(passages, scores):
-        result = passage.copy()
+    for item in response.results:
+        # Map the API result back to the original passage.
+        result = passages[item.index].copy()
 
-        result["reranker_score"] = float(score)
+        result["reranker_score"] = float(
+            item.relevance_score
+        )
 
         ranked_passages.append(result)
 
-    ranked_passages.sort(
-        key=lambda item: item["reranker_score"],
-        reverse=True,
-    )
-
-    return ranked_passages[:top_k]
+    return ranked_passages
