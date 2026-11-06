@@ -14,11 +14,12 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load the project-root .env file during local development.
+# Load project-root .env during local development.
 load_dotenv(BASE_DIR.parent / ".env")
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-local-development-key")
 
+# DEBUG should be False in production.
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 
@@ -26,19 +27,40 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 # SECURITY SETTINGS
 # --------------------------------------------------
 
-# Comma-separated hostnames, without http:// or https://
+# Explicitly allow local development and Vercel production domain.
 ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "nexus-ai-ashy-iota.vercel.app",
+]
+
+# Additional hosts can be supplied through environment variables.
+EXTRA_ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv("ALLOWED_HOSTS", "").split(",")
     if host.strip()
 ]
 
-# Comma-separated trusted origins, including https://
+ALLOWED_HOSTS.extend(
+    host for host in EXTRA_ALLOWED_HOSTS
+    if host not in ALLOWED_HOSTS
+)
+
+# Trusted HTTPS origins for CSRF protection.
 CSRF_TRUSTED_ORIGINS = [
+    "https://nexus-ai-ashy-iota.vercel.app",
+]
+
+EXTRA_CSRF_ORIGINS = [
     origin.strip()
     for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+
+CSRF_TRUSTED_ORIGINS.extend(
+    origin for origin in EXTRA_CSRF_ORIGINS
+    if origin not in CSRF_TRUSTED_ORIGINS
+)
 
 # Vercel terminates HTTPS and forwards the original protocol.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -196,3 +218,10 @@ REST_FRAMEWORK = {
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# --------------------------------------------------
+# DEFAULT PRIMARY KEY
+# --------------------------------------------------
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
