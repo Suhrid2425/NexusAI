@@ -18,8 +18,8 @@
 </p>
 
 <p align="center">
-  <a href="YOUR_LIVE_DEMO_URL">Live Demo</a> •
-  <a href="YOUR_GITHUB_REPOSITORY_URL">Source Code</a> •
+  <a href="[YOUR_LIVE_DEMO_URL](https://nexus-ai-ashy-iota.vercel.app/)">Live Demo</a> •
+  <a href="https://github.com/Suhrid2425/NexusAI">Source Code</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#features">Features</a>
 </p>
@@ -413,7 +413,7 @@ Artificial Intelligence Engineering Student | AI Systems & Backend Development
 
 Interested in building practical AI products, intelligent automation systems, and scalable software infrastructure.
 
-[LinkedIn](YOUR_LINKEDIN_URL) • [GitHub](YOUR_GITHUB_PROFILE_URL) • [Email](YOUR_EMAIL)
+[LinkedIn]([YOUR_LINKEDIN_URL](https://www.linkedin.com/in/suhrid-mandal-46a269249/)) • [GitHub]([YOUR_GITHUB_PROFILE_URL](https://github.com/Suhrid2425)) • [Email](smsuhrid@gmail.com)
 
 ---
 
